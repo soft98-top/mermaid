@@ -119,13 +119,15 @@ describe('AutoCompletionService', () => {
 
       const completions = autoCompletionService.getCompletionItems(mockMonaco, context);
       
-      expect(completions.some(c => c.label === 'nested-diagram')).toBe(true);
-      expect(completions.some(c => c.label === 'diagram-definition')).toBe(true);
+      expect(completions.some(c => c.label === 'nested-diagram-simple')).toBe(true);
+      expect(completions.some(c => c.label === 'nested-diagram-typed')).toBe(true);
+      expect(completions.some(c => c.label === 'diagram-definition-simple')).toBe(true);
+      expect(completions.some(c => c.label === 'diagram-definition-typed')).toBe(true);
     });
   });
 
   describe('getSyntaxValidationSuggestions', () => {
-    it('should suggest completion for incomplete nested diagram syntax', () => {
+    it('should suggest completion for incomplete nested diagram syntax (old format)', () => {
       const code = 'A --> {{diagram:flowchart:test';
       const position = { line: 1, column: 30 };
       
@@ -134,9 +136,27 @@ describe('AutoCompletionService', () => {
       expect(suggestions).toContain('嵌套图表语法不完整，缺少结束标记 }}');
     });
 
-    it('should suggest completion for incomplete diagram definition', () => {
+    it('should suggest completion for incomplete nested diagram syntax (new format)', () => {
+      const code = 'A --> {{diagram:test';
+      const position = { line: 1, column: 20 };
+      
+      const suggestions = autoCompletionService.getSyntaxValidationSuggestions(code, position);
+      
+      expect(suggestions).toContain('嵌套图表语法不完整，缺少结束标记 }}');
+    });
+
+    it('should suggest completion for incomplete diagram definition (old format)', () => {
       const code = '---diagram:flowchart:test---\nA --> B';
       const position = { line: 1, column: 28 };
+      
+      const suggestions = autoCompletionService.getSyntaxValidationSuggestions(code, position);
+      
+      expect(suggestions).toContain('图表定义不完整，缺少 ---end--- 标记');
+    });
+
+    it('should suggest completion for incomplete diagram definition (new format)', () => {
+      const code = '---diagram:test---\nA --> B';
+      const position = { line: 1, column: 18 };
       
       const suggestions = autoCompletionService.getSyntaxValidationSuggestions(code, position);
       

@@ -107,50 +107,14 @@ class AccessibilityManager {
         outline: none !important;
       }
       
-      /* Skip link for keyboard users */
-      .skip-link {
-        position: absolute;
-        top: -40px;
-        left: 6px;
-        background: var(--color-bg-primary, #ffffff);
-        color: var(--color-text-primary, #000000);
-        padding: 8px;
-        text-decoration: none;
-        border-radius: 4px;
-        border: 2px solid var(--color-border-focus, #3b82f6);
-        z-index: 1000;
-        transition: top 0.3s;
-      }
-      
-      .skip-link:focus {
-        top: 6px;
-      }
+
     `;
     document.head.appendChild(style);
 
-    // Add skip link
-    this.addSkipLink();
+
   }
 
-  /**
-   * Add skip link for keyboard navigation
-   */
-  private addSkipLink(): void {
-    const skipLink = document.createElement('a');
-    skipLink.href = '#main-content';
-    skipLink.className = 'skip-link';
-    skipLink.textContent = '跳转到主要内容';
-    skipLink.addEventListener('click', (e) => {
-      e.preventDefault();
-      const mainContent = document.getElementById('main-content') || 
-                         document.querySelector('main') ||
-                         document.querySelector('[role="main"]');
-      if (mainContent) {
-        this.focusElement(mainContent as HTMLElement);
-      }
-    });
-    document.body.insertBefore(skipLink, document.body.firstChild);
-  }
+
 
   /**
    * Setup screen reader support

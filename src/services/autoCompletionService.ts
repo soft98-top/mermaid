@@ -343,21 +343,39 @@ export class AutoCompletionService {
     
     return [
       {
-        label: 'nested-diagram',
+        label: 'nested-diagram-simple',
         kind: monaco.languages.CompletionItemKind.Snippet,
-        insertText: '{{diagram:${1|' + diagramTypes.join(',') + '|}:${2:diagram-id}}}',
+        insertText: '{{diagram:${1:diagram-id}}}',
         insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: '插入嵌套图表引用',
-        detail: '嵌套图表语法',
+        documentation: '插入嵌套图表引用（简化语法，自动检测类型）',
+        detail: '嵌套图表简化语法',
         range: word
       },
       {
-        label: 'diagram-definition',
+        label: 'nested-diagram-typed',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: '{{diagram:${1|' + diagramTypes.join(',') + '|}:${2:diagram-id}}}',
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: '插入嵌套图表引用（指定类型）',
+        detail: '嵌套图表完整语法',
+        range: word
+      },
+      {
+        label: 'diagram-definition-simple',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: '---diagram:${1:diagram-id}---\\n${2:图表内容}\\n---end---',
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        documentation: '定义嵌套图表（简化语法，自动检测类型）',
+        detail: '嵌套图表定义简化语法',
+        range: word
+      },
+      {
+        label: 'diagram-definition-typed',
         kind: monaco.languages.CompletionItemKind.Snippet,
         insertText: '---diagram:${1|' + diagramTypes.join(',') + '|}:${2:diagram-id}---\\n${3:图表内容}\\n---end---',
         insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-        documentation: '定义嵌套图表',
-        detail: '嵌套图表定义语法',
+        documentation: '定义嵌套图表（指定类型）',
+        detail: '嵌套图表定义完整语法',
         range: word
       }
     ];

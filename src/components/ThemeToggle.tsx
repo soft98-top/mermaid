@@ -113,27 +113,15 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
         onKeyDown={handleKeyDown}
-        className="flex items-center space-x-2 px-4 py-2 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 text-sm font-medium shadow-lg hover:shadow-xl transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        className="flex items-center justify-center w-10 h-10 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 text-sm font-medium shadow-lg hover:shadow-xl transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         aria-label={`当前主题: ${getCurrentThemeLabel()}, 点击切换主题`}
         aria-expanded={isOpen}
         aria-haspopup="menu"
-        title="切换主题"
+        title={`切换主题 - ${getCurrentThemeLabel()}`}
       >
-        <span className="text-base" aria-hidden="true">
+        <span className="text-lg" aria-hidden="true">
           {getCurrentThemeIcon()}
         </span>
-        <span className="hidden sm:inline">
-          {getCurrentThemeLabel()}
-        </span>
-        <svg
-          className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
       </button>
 
       {isOpen && (

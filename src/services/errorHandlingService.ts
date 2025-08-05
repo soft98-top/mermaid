@@ -148,8 +148,8 @@ export class ErrorHandlingService {
         continue;
       }
       
-      // Remove nested syntax from line before checking brackets
-      const cleanLine = line.replace(/\{\{diagram:[^}]+\}\}/g, '"nested"');
+      // Remove nested syntax from line before checking brackets (support both formats)
+      const cleanLine = line.replace(/\{\{diagram:(?:[^:]+:)?[^}]+\}\}/g, '"nested"');
       
       // Only check brackets in node definitions and labels
       const nodeDefinitions = cleanLine.match(/[A-Za-z0-9_]+\s*[\[\(\{<][^\]\)\}>]*[\]\)\}>]/g);

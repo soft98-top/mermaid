@@ -206,19 +206,20 @@ export class SyntaxValidationService {
    * Validate nested diagram syntax
    */
   private validateNestedDiagrams(code: string, result: ValidationResult): void {
-    // Check for nested diagram references
-    const nestedReferencePattern = /\{\{diagram:([^:]+):([\w-]+)\}\}/g;
-    const definitionPattern = /---diagram:([^:]+):([\w-]+)---([\s\S]*?)---end---/g;
+    // Support both old format {{diagram:type:id}} and new simplified format {{diagram:id}}
+    const nestedReferencePattern = /\{\{diagram:(?:([^:]+):)?([\w-]+)\}\}/g;
+    const definitionPattern = /---diagram:(?:([^:]+):)?([\w-]+)---([\s\S]*?)---end---/g;
     
-    const references = new Map<string, { type: string; line: number }>();
-    const definitions = new Map<string, { type: string; line: number }>();
+    const references = new Map<string, { type?: string; line: number }>();
+    const definitions = new Map<string, { type?: string; line: number }>();
     
     // Find all references
     const lines = code.split('\n');
     lines.forEach((line, index) => {
       let match;
       while ((match = nestedReferencePattern.exec(line)) !== null) {
-        const [, type, id] = match;
+        const type = match[1]; // Optional type
+        const id = match[2];
         references.set(id, { type, line: index + 1 });
       }
     });
@@ -226,7 +227,8 @@ export class SyntaxValidationService {
     // Find all definitions
     let defMatch;
     while ((defMatch = definitionPattern.exec(code)) !== null) {
-      const [, type, id] = defMatch;
+      const type = defMatch[1]; // Optional type
+      const id = defMatch[2];
       const lineNumber = code.substring(0, defMatch.index).split('\n').length;
       definitions.set(id, { type, line: lineNumber });
     }
@@ -242,7 +244,8 @@ export class SyntaxValidationService {
         });
       } else {
         const def = definitions.get(id)!;
-        if (ref.type !== def.type) {
+        // Only check type mismatch if both reference and definition have explicit types
+        if (ref.type && def.type && ref.type !== def.type) {
           result.warnings.push(`嵌套图表类型不匹配: 引用为 ${ref.type}，定义为 ${def.type}`);
         }
       }
@@ -263,20 +266,24 @@ export class SyntaxValidationService {
    * Validate circular references in nested diagrams
    */
   private validateCircularReferences(code: string, result: ValidationResult): void {
-    const definitionPattern = /---diagram:([^:]+):([\w-]+)---([\s\S]*?)---end---/g;
-    const referencePattern = /\{\{diagram:([^:]+):([^}]+)\}\}/g;
+    // Support both old format with type and new simplified format without type
+    const definitionPattern = /---diagram:(?:([^:]+):)?([\w-]+)---([\s\S]*?)---end---/g;
+    const referencePattern = /\{\{diagram:(?:([^:]+):)?([\w-]+)\}\}/g;
     
     const dependencies = new Map<string, string[]>();
     
     // Build dependency graph
     let match;
     while ((match = definitionPattern.exec(code)) !== null) {
-      const [, , id, content] = match;
+      const type = match[1]; // Optional type
+      const id = match[2];
+      const content = match[3];
       const refs: string[] = [];
       
       let refMatch;
       while ((refMatch = referencePattern.exec(content)) !== null) {
-        refs.push(refMatch[2]);
+        const refId = refMatch[2]; // ID is always the second capture group
+        refs.push(refId);
       }
       
       dependencies.set(id, refs);
@@ -430,7 +437,7 @@ export class SyntaxValidationService {
         
       case 'nested_error':
         if (error.message.includes('找不到嵌套图表定义')) {
-          suggestions.push('添加对应的图表定义: ---diagram:type:id---');
+          suggestions.push('添加对应的图表定义: ---diagram:id--- 或 ---diagram:type:id---');
           suggestions.push('或者检查图表ID是否拼写正确');
         }
         if (error.message.includes('循环引用')) {

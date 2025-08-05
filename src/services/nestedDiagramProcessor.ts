@@ -171,14 +171,20 @@ export class NestedDiagramProcessor {
    */
   private extractDiagramDefinitions(code: string): void {
     this.diagramRegistry.clear();
-    const diagramDefinitionRegex = /---diagram:([^:]+):([\w-]+)---([\s\S]*?)---end---/g;
+    // Support both old format with type and new simplified format without type
+    const diagramDefinitionRegex = /---diagram:(?:([^:]+):)?([\w-]+)---([\s\S]*?)---end---/g;
     let match;
 
     while ((match = diagramDefinitionRegex.exec(code)) !== null) {
       const [, type, id, content] = match;
       const cleanContent = content.trim();
       
-      if (this.isValidDiagramType(type) && id && cleanContent) {
+      // If type is provided, validate it; otherwise, auto-detect from content
+      if (type && !this.isValidDiagramType(type)) {
+        continue;
+      }
+      
+      if (id && cleanContent) {
         this.diagramRegistry.set(id, cleanContent);
       }
     }
@@ -188,7 +194,8 @@ export class NestedDiagramProcessor {
    * Extract main diagram content (excluding definitions)
    */
   private extractMainDiagramContent(code: string): string {
-    const diagramDefinitionRegex = /---diagram:([^:]+):([\w-]+)---([\s\S]*?)---end---/g;
+    // Support both old format with type and new simplified format without type
+    const diagramDefinitionRegex = /---diagram:(?:([^:]+):)?([\w-]+)---([\s\S]*?)---end---/g;
     return code.replace(diagramDefinitionRegex, '').trim();
   }
 
@@ -216,28 +223,42 @@ export class NestedDiagramProcessor {
       });
     }
 
-    const nestedSyntaxRegex = /\{\{diagram:([^:]+):([\w-]+)\}\}/g;
+    // Support both old format {{diagram:type:id}} and new simplified format {{diagram:id}}
+    const nestedSyntaxRegex = /\{\{diagram:(?:([^:}]+):)?([\w-]+)\}\}/g;
     const referencesToProcess = [];
     let match;
 
     // First, find all references to process
     while ((match = nestedSyntaxRegex.exec(content)) !== null) {
+      const type = match[1]; // Optional type
+      const id = match[2];
+      
       referencesToProcess.push({
         fullMatch: match[0],
-        type: match[1],
-        id: match[2],
+        type,
+        id,
       });
     }
 
     // Process each reference recursively to populate the nestedDiagrams map
     for (const ref of referencesToProcess) {
-      if (!this.isValidDiagramType(ref.type)) {
-        throw new Error(`Invalid diagram type: ${ref.type}`);
-      }
-
       const diagramCode = this.diagramRegistry.get(ref.id);
       if (!diagramCode) {
         throw new Error(`Referenced diagram not found: ${ref.id}`);
+      }
+
+      // Determine diagram type: use reference type if provided, otherwise auto-detect
+      let diagramType: MermaidDiagramType | null;
+      if (ref.type) {
+        if (!this.isValidDiagramType(ref.type)) {
+          throw new Error(`Invalid diagram type: ${ref.type}`);
+        }
+        diagramType = ref.type as MermaidDiagramType;
+      } else {
+        diagramType = this.detectDiagramType(diagramCode);
+        if (!diagramType) {
+          throw new Error(`Unable to detect diagram type for: ${ref.id}`);
+        }
       }
 
       if (parentReferences.includes(ref.id)) {
@@ -258,7 +279,7 @@ export class NestedDiagramProcessor {
       );
 
       nestedDiagrams.set(ref.id, {
-        type: ref.type as MermaidDiagramType,
+        type: diagramType,
         content: nestedContent,
         nestedDiagrams: nestedMapForRecusion,
         parentReferences: nestedParentRefs,
@@ -266,19 +287,27 @@ export class NestedDiagramProcessor {
     }
     
     // After all references are processed and populated, perform a single global replacement
-    // Replace nested syntax with placeholder text to avoid bracket issues
-    const clickStatements: string[] = [];
-    const processedContent = content.replace(nestedSyntaxRegex, (_fullMatch, _type, id) => {
-      clickStatements.push(`    click ${id} "${id}"`);
-      return `"${id}"`; // Return quoted ID to avoid bracket syntax issues
+    // Handle different contexts: node labels vs click statements
+    const replacementRegex = /\{\{diagram:(?:([^:}]+):)?([\w-]+)\}\}/g;
+    const processedContent = content.replace(replacementRegex, (fullMatch, _type, id, offset) => {
+      // Check if this replacement is inside quotes (for click statements)
+      const beforeMatch = content.substring(0, offset);
+      const afterMatch = content.substring(offset + fullMatch.length);
+      
+      // Look for quote patterns around the match
+      const beforeQuote = beforeMatch.match(/"$/);
+      const afterQuote = afterMatch.match(/^"/);
+      
+      if (beforeQuote && afterQuote) {
+        // This is inside quotes (like click statements), return just the ID
+        return id;
+      } else {
+        // This is in a node label or other context, return quoted ID
+        return `"${id}"`;
+      }
     });
 
-    // Append click statements at the end
-    const finalContent = clickStatements.length > 0 
-      ? processedContent + '\n' + clickStatements.join('\n')
-      : processedContent;
-
-    return finalContent;
+    return processedContent;
   }
 
   /**
@@ -365,11 +394,12 @@ export class NestedDiagramProcessor {
    */
   private extractDependencies(code: string): string[] {
     const dependencies: string[] = [];
-    const nestedSyntaxRegex = /\{\{diagram:([^:]+):([\w-]+)\}\}/g;
+    // Support both old format {{diagram:type:id}} and new simplified format {{diagram:id}}
+    const nestedSyntaxRegex = /\{\{diagram:(?:([^:}]+):)?([\w-]+)\}\}/g;
     let match;
 
     while ((match = nestedSyntaxRegex.exec(code)) !== null) {
-      const [, , id] = match;
+      const id = match[2]; // ID is always the second capture group
       if (!dependencies.includes(id)) {
         dependencies.push(id);
       }
@@ -691,13 +721,20 @@ export class NestedDiagramProcessor {
    */
   public hasContentChanged(code: string): boolean {
     const currentDefinitions = new Map<string, string>();
-    const diagramDefinitionRegex = /---diagram:([^:]+):([\w-]+)---([\s\S]*?)---end---/g;
+    // Support both old format with type and new simplified format without type
+    const diagramDefinitionRegex = /---diagram:(?:([^:]+):)?([\w-]+)---([\s\S]*?)---end---/g;
     let match;
 
     while ((match = diagramDefinitionRegex.exec(code)) !== null) {
       const [, type, id, content] = match;
       const cleanContent = content.trim();
-      if (this.isValidDiagramType(type) && id && cleanContent) {
+      
+      // If type is provided, validate it; otherwise, allow any valid ID
+      if (type && !this.isValidDiagramType(type)) {
+        continue;
+      }
+      
+      if (id && cleanContent) {
         currentDefinitions.set(id, cleanContent);
       }
     }

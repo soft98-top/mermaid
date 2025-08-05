@@ -46,7 +46,7 @@ describe('SyntaxValidationService', () => {
   });
 
   describe('nested diagram validation', () => {
-    it('should detect missing nested diagram definition', () => {
+    it('should detect missing nested diagram definition (old format)', () => {
       const code = `flowchart TD
         A --> {{diagram:sequence:login}}
         B --> C`;
@@ -56,7 +56,17 @@ describe('SyntaxValidationService', () => {
       expect(result.errors.some(e => e.message.includes('找不到嵌套图表定义: login'))).toBe(true);
     });
 
-    it('should validate complete nested diagram structure', () => {
+    it('should detect missing nested diagram definition (new format)', () => {
+      const code = `flowchart TD
+        A --> {{diagram:login}}
+        B --> C`;
+      
+      const result = syntaxValidationService.validateCode(code);
+      expect(result.isValid).toBe(false);
+      expect(result.errors.some(e => e.message.includes('找不到嵌套图表定义: login'))).toBe(true);
+    });
+
+    it('should validate complete nested diagram structure (old format)', () => {
       const code = `flowchart TD
         A --> {{diagram:sequence:login}}
         B --> C
@@ -70,7 +80,21 @@ describe('SyntaxValidationService', () => {
       expect(result.isValid).toBe(true);
     });
 
-    it('should detect circular references', () => {
+    it('should validate complete nested diagram structure (new format)', () => {
+      const code = `flowchart TD
+        A --> {{diagram:login}}
+        B --> C
+        
+        ---diagram:login---
+        sequenceDiagram
+            User->>System: Login
+        ---end---`;
+      
+      const result = syntaxValidationService.validateCode(code);
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should detect circular references (old format)', () => {
       const code = `flowchart TD
         A --> {{diagram:sequence:b}}
         
@@ -82,6 +106,25 @@ describe('SyntaxValidationService', () => {
         ---diagram:flowchart:a---
         flowchart TD
             X --> {{diagram:sequence:b}}
+        ---end---`;
+      
+      const result = syntaxValidationService.validateCode(code);
+      expect(result.isValid).toBe(false);
+      expect(result.errors.some(e => e.message.includes('检测到循环引用'))).toBe(true);
+    });
+
+    it('should detect circular references (new format)', () => {
+      const code = `flowchart TD
+        A --> {{diagram:b}}
+        
+        ---diagram:b---
+        sequenceDiagram
+            User->>{{diagram:a}}: Message
+        ---end---
+        
+        ---diagram:a---
+        flowchart TD
+            X --> {{diagram:b}}
         ---end---`;
       
       const result = syntaxValidationService.validateCode(code);

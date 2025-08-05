@@ -331,32 +331,6 @@ function App() {
               {/* Export button */}
               <ExportButton targetElementRef={canvasRef} />
               
-              {/* Performance monitor toggle */}
-              <button
-                onClick={() => setShowPerformanceMonitor(!ui.showPerformanceMonitor)}
-                className={`px-4 py-2 rounded-xl text-sm font-semibold shadow-theme-lg hover:shadow-theme-xl transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                  ui.showPerformanceMonitor
-                    ? 'bg-gradient-to-r from-orange-600 to-red-700 text-white hover:from-orange-700 hover:to-red-800'
-                    : 'bg-gradient-to-r from-gray-600 to-gray-700 text-white hover:from-gray-700 hover:to-gray-800'
-                }`}
-                title="性能监控 (Ctrl+M)"
-                aria-label={`${ui.showPerformanceMonitor ? '关闭' : '打开'}性能监控`}
-              >
-                <span aria-hidden="true">📊</span>
-                <span className="hidden sm:inline ml-1">性能</span>
-              </button>
-              
-              {/* Keyboard shortcuts help */}
-              <button
-                onClick={() => setShowKeyboardHelp(true)}
-                className="px-4 py-2 rounded-xl text-sm font-semibold shadow-theme-lg hover:shadow-theme-xl transform hover:scale-105 transition-all duration-300 bg-gradient-to-r from-purple-600 to-indigo-700 text-white hover:from-purple-700 hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-                title="键盘快捷键 (Ctrl+K)"
-                aria-label="显示键盘快捷键帮助"
-              >
-                <span aria-hidden="true">⌨️</span>
-                <span className="hidden sm:inline ml-1">快捷键</span>
-              </button>
-              
               {/* Theme toggle */}
               <ThemeToggle
                 currentTheme={ui.theme}

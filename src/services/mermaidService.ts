@@ -38,6 +38,8 @@ export class MermaidService {
       flowchart: {
         useMaxWidth: true,
         htmlLabels: true,
+        // Disable default click behavior to allow custom handling
+        clickHandler: null,
       },
       sequence: {
         useMaxWidth: true,
