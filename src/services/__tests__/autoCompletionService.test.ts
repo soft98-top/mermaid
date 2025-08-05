@@ -15,12 +15,22 @@ const mockMonaco = {
     }
   },
   Range: class MockRange {
+    startLineNumber: number;
+    startColumn: number;
+    endLineNumber: number;
+    endColumn: number;
+    
     constructor(
-      public startLineNumber: number,
-      public startColumn: number,
-      public endLineNumber: number,
-      public endColumn: number
-    ) {}
+      startLineNumber: number,
+      startColumn: number,
+      endLineNumber: number,
+      endColumn: number
+    ) {
+      this.startLineNumber = startLineNumber;
+      this.startColumn = startColumn;
+      this.endLineNumber = endLineNumber;
+      this.endColumn = endColumn;
+    }
   }
 } as any;
 

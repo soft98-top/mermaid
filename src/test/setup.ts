@@ -39,14 +39,24 @@ Object.defineProperty(document, 'documentElement', {
 });
 
 // Mock Monaco Range for autoCompletion tests
-global.monaco = {
+(globalThis as any).monaco = {
   Range: class MockRange {
+    startLineNumber: number;
+    startColumn: number;
+    endLineNumber: number;
+    endColumn: number;
+    
     constructor(
-      public startLineNumber: number,
-      public startColumn: number,
-      public endLineNumber: number,
-      public endColumn: number
-    ) {}
+      startLineNumber: number,
+      startColumn: number,
+      endLineNumber: number,
+      endColumn: number
+    ) {
+      this.startLineNumber = startLineNumber;
+      this.startColumn = startColumn;
+      this.endLineNumber = endLineNumber;
+      this.endColumn = endColumn;
+    }
   },
   languages: {
     CompletionItemKind: {
