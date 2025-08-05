@@ -772,7 +772,7 @@ export const DiagramCanvas: React.FC<DiagramCanvasProps> = ({
                   handleNestedInteraction(href, event as MouseEvent);
                   return false;
                 }
-                currentElement = currentElement.parentElement;
+                currentElement = currentElement.parentElement as Element;
               }
             }
           }, true); // Use capture phase

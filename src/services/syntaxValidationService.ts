@@ -275,7 +275,6 @@ export class SyntaxValidationService {
     // Build dependency graph
     let match;
     while ((match = definitionPattern.exec(code)) !== null) {
-      const type = match[1]; // Optional type
       const id = match[2];
       const content = match[3];
       const refs: string[] = [];
