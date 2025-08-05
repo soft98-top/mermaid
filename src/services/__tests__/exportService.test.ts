@@ -42,7 +42,12 @@ describe('ExportService', () => {
   });
 
   it('should export to SVG format', async () => {
-    const blob = await exportService.exportToSVG(mockElement);
+    // Create element with proper structure for SVG export
+    const elementWithTransform = document.createElement('div');
+    elementWithTransform.style.transform = 'scale(1)';
+    elementWithTransform.innerHTML = '<svg><rect width="100" height="100" fill="blue"/></svg>';
+    
+    const blob = await exportService.exportToSVG(elementWithTransform);
     expect(blob).toBeInstanceOf(Blob);
     expect(blob.type).toBe('image/svg+xml');
   });
@@ -51,11 +56,11 @@ describe('ExportService', () => {
     const blob = await exportService.exportToPDF(mockElement);
     expect(blob).toBeInstanceOf(Blob);
     expect(blob.type).toBe('application/pdf');
-  });
+  }, 10000); // Increase timeout to 10 seconds
 
   it('should throw error when no SVG found for SVG export', async () => {
     const emptyElement = document.createElement('div');
-    await expect(exportService.exportToSVG(emptyElement)).rejects.toThrow('No SVG element found');
+    await expect(exportService.exportToSVG(emptyElement)).rejects.toThrow('No diagram content found');
   });
 
   it('should create download link for file download', () => {

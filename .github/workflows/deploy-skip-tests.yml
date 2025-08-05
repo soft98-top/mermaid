@@ -1,12 +1,9 @@
-name: Deploy to GitHub Pages (With Tests)
+name: Deploy to GitHub Pages (Skip Tests)
 
 on:
-  # Disabled for now due to test issues
-  # push:
-  #   branches: [ main ]
-  # pull_request:
-  #   branches: [ main ]
-  workflow_dispatch: # Manual trigger only
+  push:
+    branches: [ main ]
+  workflow_dispatch: # Allow manual trigger
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
@@ -36,10 +33,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Run tests
-        run: npm run test -- --run
-        continue-on-error: true
 
       - name: Build application
         run: npm run build

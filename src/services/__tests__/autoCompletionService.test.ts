@@ -13,6 +13,14 @@ const mockMonaco = {
     CompletionItemInsertTextRule: {
       InsertAsSnippet: 4
     }
+  },
+  Range: class MockRange {
+    constructor(
+      public startLineNumber: number,
+      public startColumn: number,
+      public endLineNumber: number,
+      public endColumn: number
+    ) {}
   }
 } as any;
 
